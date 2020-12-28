@@ -10,13 +10,13 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import net.vonforst.evmap.api.availability.ChargeLocationStatus
 import net.vonforst.evmap.api.availability.getAvailability
-import net.vonforst.evmap.api.goingelectric.*
+import net.vonforst.evmap.api.goingelectric.ChargeCard
+import net.vonforst.evmap.api.goingelectric.ChargeLocation
+import net.vonforst.evmap.api.goingelectric.ChargepointListItem
+import net.vonforst.evmap.api.goingelectric.GoingElectricApi
 import net.vonforst.evmap.storage.*
 import net.vonforst.evmap.ui.cluster
 import net.vonforst.evmap.utils.distanceBetween
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.io.IOException
 
 data class MapPosition(val bounds: LatLngBounds, val zoom: Float)
@@ -425,24 +425,19 @@ class MapViewModel(application: Application, geApiKey: String) : AndroidViewMode
 
     private fun loadChargerDetails(charger: ChargeLocation) {
         chargerDetails.value = Resource.loading(null)
-        api.getChargepointDetail(charger.id).enqueue(object :
-            Callback<ChargepointList> {
-            override fun onFailure(call: Call<ChargepointList>, t: Throwable) {
-                chargerDetails.value = Resource.error(t.message, null)
-                t.printStackTrace()
-            }
-
-            override fun onResponse(
-                call: Call<ChargepointList>,
-                response: Response<ChargepointList>
-            ) {
+        viewModelScope.launch {
+            try {
+                val response = api.getChargepointDetail(charger.id)
                 if (!response.isSuccessful || response.body()!!.status != "ok") {
                     chargerDetails.value = Resource.error(response.message(), null)
                 } else {
                     chargerDetails.value =
                         Resource.success(response.body()!!.chargelocations[0] as ChargeLocation)
                 }
+            } catch (e: IOException) {
+                chargerDetails.value = Resource.error(e.message, null)
+                e.printStackTrace()
             }
-        })
+        }
     }
 }
