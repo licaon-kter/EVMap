@@ -998,6 +998,14 @@ class MapFragment : Fragment(), OnMapReadyCallback, MapsActivity.FragmentCallbac
                 putDouble(ARG_LON, charger.coordinates.lng)
             }
         }
+
+        fun showCharger(id: Long, lat: Double, lon: Double): Bundle {
+            return Bundle().apply {
+                putLong(ARG_CHARGER_ID, id)
+                putDouble(ARG_LAT, lat)
+                putDouble(ARG_LON, lon)
+            }
+        }
     }
 
     override fun onConnected() {

@@ -17,11 +17,15 @@ import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 import net.vonforst.evmap.api.goingelectric.ChargeLocation
+import net.vonforst.evmap.fragment.MapFragment
 import net.vonforst.evmap.storage.PreferenceDataSource
 import net.vonforst.evmap.utils.LocaleContextWrapper
 
 
 const val REQUEST_LOCATION_PERMISSION = 1
+const val EXTRA_CHARGER_ID = "chargerId"
+const val EXTRA_LAT = "lat"
+const val EXTRA_LON = "lon"
 
 class MapsActivity : AppCompatActivity() {
     interface FragmentCallback {
@@ -64,6 +68,20 @@ class MapsActivity : AppCompatActivity() {
         prefs = PreferenceDataSource(this)
 
         checkPlayServices(this)
+
+        if (intent.hasExtra(EXTRA_CHARGER_ID)) {
+            navController.createDeepLink()
+                .setDestination(R.id.map)
+                .setArguments(
+                    MapFragment.showCharger(
+                        intent.getLongExtra(EXTRA_CHARGER_ID, 0),
+                        intent.getDoubleExtra(EXTRA_LAT, 0.0),
+                        intent.getDoubleExtra(EXTRA_LON, 0.0)
+                    )
+                )
+                .createPendingIntent()
+                .send()
+        }
     }
 
     fun navigateTo(charger: ChargeLocation) {
